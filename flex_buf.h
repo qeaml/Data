@@ -72,11 +72,11 @@ void buf_shrink(flex_buf_t *buf);
 void buf_finalize(flex_buf_t *buf, char *out);
 // Free the buffer's underlying data and replace the now-invalid pointer with
 // NULL.
-void buf_free(flex_buf_t buf);
+void buf_free(flex_buf_t *buf);
 
 // UK-friendly
 #define buf_finalise buf_finalize
-#define buf_append_lit(buf, lit) buf_append_n(buf, lit, sizeof(lit))
+#define buf_append_lit(buf, lit) buf_append_n(buf, lit, sizeof(lit)-1)
 
 #endif // QML_FLEXBUF_DEFINED
 
@@ -137,23 +137,23 @@ void buf_shrink(flex_buf_t *buf) {
   buf->data = (char *)QML_REALLOC(buf->data, buf->cap);
 }
 
-void buf_finalize(flex_buf_t buf, char *out) {
-  memcpy(out, buf.data, buf.size);
-  out[buf.size] = 0;
+void buf_finalize(flex_buf_t *buf, char *out) {
+  memcpy(out, buf->data, buf->size);
+  out[buf->size] = 0;
 
   #if defined(QML_FLEXBUF_FREE_ON_FINALIZE) || defined(QML_FLEXBUF_FREE_ON_FINALISE)
     buf_free(buf);
   #endif
 }
 
-void buf_free(flex_buf_t buf) {
-  if(buf.cap == 0 || buf.data == NULL)
+void buf_free(flex_buf_t *buf) {
+  if(buf->cap == 0 || buf->data == NULL)
     return;
 
-  buf.size = 0;
-  buf.cap = 0;
-  QML_FREE(buf.data);
-  buf.data = NULL;
+  buf->size = 0;
+  buf->cap = 0;
+  QML_FREE(buf->data);
+  buf->data = NULL;
 }
 
 #endif // QML_FLEXBUF_IMPLEMENTATION
